@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import os
 
@@ -29,9 +30,14 @@ merged_df['month'] = merged_df['month'].str[:3]
 merged_df['time_category'] = merged_df['hr'].apply(lambda x: 'daytime' if x in ['06', '09', '12', '15'] else 'nighttime')
 merged_df['loc_category'] = merged_df['alat'].apply(lambda x: 'north' if x >=23 else 'south')
 
+# Compute bin edges dynamically
+num_bins = 5
+merged_df['rh_bin'] = pd.cut(merged_df['rh'], 5, labels=[f'bin{i+1}' for i in range(num_bins)])
+merged_df['so2_bin'] = pd.cut(merged_df['so2'], 5, labels=[f'bin{i+1}' for i in range(num_bins)])
+
 merged_df = merged_df[['ix', 'iy', 'alon', 'alat','loc_category',
                        'month', 'hr_GMT','hr','time_category',
-                         'rh', 'so2', 'fso4']]
+                         'rh','rh_bin', 'so2', 'so2_bin','fso4']]
 
 
 merged_df.to_csv(os.getcwd()+'/data/so2_fso4.csv', index=False)

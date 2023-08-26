@@ -1,19 +1,35 @@
 import pandas as pd
 import numpy as np
+from math import sqrt
 
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_squared_error
 
 import os
 
 fso4_df = pd.read_csv(os.getcwd()+'/data/so2_fso4.csv')
+fso4_df['ix'] = fso4_df.ix.astype('str')
+fso4_df['iy'] = fso4_df.iy.astype('str')
+fso4_df['loc'] = fso4_df['ix']+fso4_df['iy']
 
-X = fso4_df[['rh','so2','time_category', 'month']]
-X = pd.get_dummies(X, columns = ['time_category', 'month'])
+# There are outliers in so2 column
+fso4_df['log_so2'] = np.log(fso4_df['so2']+0.0001)
+#Remove remaining outliers
+upper_limit = fso4_df.log_so2.mean() + 3*fso4_df.log_so2.std()
+lower_limit = fso4_df.log_so2.mean() - 3*fso4_df.log_so2.std()
+fso4_df_removedoutliers = fso4_df[(fso4_df.log_so2<upper_limit)&(fso4_df.log_so2>lower_limit)]
 
-y = fso4_df.fso4
+X = fso4_df_removedoutliers[['log_so2', 'time_category','rh','month','loc_category'
+                             ]]
+X = pd.get_dummies(X, columns = ['month','loc_category',
+                                'time_category',
+                                  ],
+                drop_first=True)
+
+y = fso4_df_removedoutliers.fso4
 
 # Train - Test Split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
@@ -25,19 +41,22 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random
 
 #Cross Validation
 regression = LinearRegression()
+#regression = RandomForestRegressor(n_estimators=100, random_state=42)
 regression.fit(X_train,y_train)
 
 mse = cross_val_score(regression, X_train, y_train, scoring='neg_mean_squared_error', cv=10)
 print('MSE:', mse)
 
 # Prediction
-reg_predict = regression.predict(X_test)
+y_pred = regression.predict(X_test)
 
+r2 = r2_score(y_pred,y_test)
+print('R2: ',r2)
 
-r2 = r2_score(reg_predict,y_test)
-print(r2)
+rmse = sqrt(mean_squared_error(y_pred, y_test))
+print('RMSE: ',rmse)
 
-# Get the intercept and coefficients
+#Get the intercept and coefficients
 intercept = regression.intercept_
 coefficients = regression.coef_
 

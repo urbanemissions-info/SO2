@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import os
 
-rh_df = pd.read_csv(os.getcwd()+'/data/SO4aerosol-functions-cams/secrates_rh_india.csv')
-so2_df = pd.read_csv(os.getcwd()+'/data/SO4aerosol-functions-cams/secrates_so2_india.csv')
-fso4_df = pd.read_csv(os.getcwd()+'/data/SO4aerosol-functions-cams/secrates_fso4_india.csv')
+rh_df = pd.read_csv(os.getcwd()+'/data/SO4aerosol-functions-cams2020/secrates_rh_india.csv')
+so2_df = pd.read_csv(os.getcwd()+'/data/SO4aerosol-functions-cams2020/secrates_so2_india.csv')
+fso4_df = pd.read_csv(os.getcwd()+'/data/SO4aerosol-functions-cams2020/secrates_fso4_india.csv')
 
 # GMT Conversion (+6)
 time_mapping = {
@@ -40,4 +40,4 @@ merged_df = merged_df[['ix', 'iy', 'alon', 'alat','loc_category',
                          'rh','rh_bin', 'so2', 'so2_bin','fso4']]
 
 
-merged_df.to_csv(os.getcwd()+'/data/so2_fso4.csv', index=False)
+merged_df.to_csv(os.getcwd()+'/data/so2_fso4_2020.csv', index=False)
